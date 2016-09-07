@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ja" ng-app="iida.app">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+  <!-- IE9以降で正しく機能するようにする -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  <!-- description -->
+  <meta name="description" content="REST trial application">
+  <meta name="keywords" content="REST bottle angular angularjs material">
+  <meta name="author" content="Takamitsu IIDA">
+
+  <!-- viewportの設定 -->
+  <!-- width=device-width 表示領域の幅を端末画面の幅に設定 -->
+  <!-- initial-scale=1 表示倍率を１倍に設定 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- faviconの設定 -->
+  <!--
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="bookmark" href="/favicon.ico" />
+  -->
+
+  <!-- ブラウザのウィンドウやタブに表示されるタイトル -->
+  <title>bottle rest api</title>
+
+  <!-- Font Awesome -->
+  <link href="./static/font-awesome-4.6.3/css/font-awesome.css" rel="stylesheet">
+
+  <!-- AngularJS -->
+  <script src="./static/angular-1.5.8/angular.min.js"></script>
+
+  <!-- Angular Resource -->
+  <script src="./static/angular-1.5.8/angular-resource.min.js"></script>
+
+  <!-- Angular animate -->
+  <script src="./static/angular-1.5.8/angular-animate.min.js"></script>
+
+  <!-- Angular aria -->
+  <script src="./static/angular-1.5.8/angular-aria.min.js"></script>
+
+  <!-- Angular messages -->
+  <script src="./static/angular-1.5.8/angular-messages.min.js"></script>
+
+  <!-- Angular material -->
+  <script src="./static/angular-material-1.1.1/angular-material.min.js"></script>
+  <link href="./static/angular-material-1.1.1/angular-material.min.css" rel="stylesheet">
+
+  <!-- Angular materialはRobotoフォントを前提にしている -->
+  <!-- <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900,300italic,400italic,500italic,700italic,900italic"> -->
+
+  <!-- Angular UI Router -->
+  <script src="./static/angular-ui-router-0.2.18/angular-ui-router.min.js"></script>
+
+  <!-- angular-utils-pagination -->
+  <script src="./static/angular-utils-pagination/dirPagination.js"></script>
+
+  <!-- サイトのCSS -->
+  <link href="./static/site/css/site.css" rel="stylesheet">
+
+  <!-- サイトのJavaScript -->
+  <script src="./static/site/js/iida.startup.js"></script>
+  <script src="./static/site/js/iida.main.js"></script>
+
+</head>
+
+<!--
+  -- layout="column" コンテンツを縦並びにする
+  -- layout-fill 全画面に広げる
+  -- 画面レイアウトを制御する最上位のコントローラtopControllerをバインドする
+  -->
+<body layout="column" layout-fill ng-cloak ng-controller="topController as tc">
+
+  <!-- 縦並びの上から１個目はナビゲーション用のツールバー -->
+  <md-toolbar>
+    <div class="md-toolbar-tools">
+      <!-- ロゴ -->
+      <h1><a href="#">{{::tc.logoTitle}}</a></h1>
+      <span flex><!-- flex指定により以下が右寄せされる --></span>
+      <!-- リンクアイコン(仮置き) -->
+      <md-button ng-repeat="link in tc.links" aria-label="{{::link.label}}">{{::link.title}}</md-button>
+      <!-- 設定用のアイコン(仮置き) -->
+      <md-button aria-label="setting" class="md-icon-button">
+        <md-icon md-font-icon="fa-gear" class="fa fa-2x"></md-icon>
+      </md-button>
+    </div>
+  </md-toolbar>
+
+  <!-- 縦並びの上から２個目はui-routerのコンテナにして、URLごとに内容を差し替える -->
+  <div flex ui-view></div>
+
+</body>
+
+<!--
+  -- ******************
+  -- 以下、先読みスクリプト
+  -- ******************
+  -->
+
+<!--
+  -- トップページ
+  -- url: '/',
+  -- templateUrl: 'index.tpl',
+  -- controller: 'indexController',
+  -- controllerAs: 'indexCtrl'
+  -->
+<script type="text/ng-template" id="index.tpl">
+  <md-content id="index" md-component-id="index" flex layout="row" layout-margin layout-align="center start">
+    <md-card flex="66" layout-padding>
+
+      <md-card-content>
+        <h1>{{ indexCtrl.title }}</h1>
+        <p>{{ indexCtrl.description }}</p>
+        <md-list-item class="md-3-line">
+          <div class="md-list-item-text" layout="column">
+            <h3>{{ indexCtrl.author }}</h3>
+            <h4>{{ indexCtrl.date }}</h4>
+            <p>{{ indexCtrl.mail }}</p>
+          </div>
+        </md-list-item>
+      </md-card-content>
+
+      <md-card-actions layout="row" layout-align="center center">
+        <md-button aria-label="bottle rest" class="md-raised md-primary" ui-sref="rest">REST動作確認</md-button>
+      </md-card-actions>
+
+    </md-card>
+  </md-content>
+</script>
+
+
+<!--
+  -- REST APIテストページ
+  -- url: '/rest',
+  -- templateUrl: 'rest.tpl',
+  -- controller: 'restController',
+  -- controllerAs: 'restCtrl'
+  -->
+<script type="text/ng-template" id="rest.tpl">
+
+  <!-- レイアウトはrowとし、1行を左右2個に割って、サイドナビとメインコンテンツの画面構成にする -->
+  <!-- layout-fillで上下左右に広げる -->
+  <div flex layout-fill layout="row">
+
+    <!-- サイドナビ -->
+    <md-sidenav id="sidenav" md-component-id="sidenav" class="md-sidenav-left md-whiteframe-z3" hide-print md-is-locked-open="!tc.hideSidenav();">
+
+      <!-- ツールバーを使ってタイトルを付ける -->
+      <!-- md-hue-1で色を少し薄くする -->
+      <md-toolbar class="md-toolbar-tools md-hue-1">
+        <h2>動作確認メソッド</h2>
+        <span flex><!--右寄せ--></span>
+        <md-button aria-label="close sidenav" class="md-icon-button" ng-show="tc.enableCloseSidenav();" ng-click="tc.closeSidenav();">
+          <md-icon md-font-icon="fa-times" class="fa fa-2x"></md-icon>
+        </md-button>
+      </md-toolbar>
+
+      <!-- サイドナビのコンテンツ -->
+      <md-content>
+        <md-list flex>
+          <md-list-item class="md-2-line" ng-repeat="menu in restCtrl.menus" ng-click="null" ui-sref="{{menu.state}}">
+            <div class="md-list-item-text" layout="column">
+              <h3>{{ menu.title }}</h3>
+              <h4>{{ menu.description }}</h4>
+            </div>
+            <md-divider></md-divider>
+          </md-list-item>
+        </md-list>
+      </md-content>
+    <!-- サイドナビ・おわり -->
+    </md-sidenav>
+
+    <!-- メインコンテンツ -->
+    <md-content id="rightPanel" layout="column" flex layout-padding>
+
+      <div>
+        <!-- サイドナビを表示するボタン。画面サイズが小さいときだけこのボタンを出す -->
+        <span>
+          <md-button aria-label="open sidenav" class="md-fab md-mini" ng-click="tc.openSidenav()" ng-show="tc.enableShowSidenav()">
+            <!-- <md-icon md-svg-icon="menu"></md-icon> -->
+            <md-icon md-font-icon="fa-bars" class="fa"></md-icon>
+          </md-button>
+        </span>
+      </div>
+
+      <!-- URLごとに内容を差し替える -->
+      <div flex ui-view></div>
+
+    <!-- メインコンテンツ・おわり -->
+    </md-content>
+
+  <!-- 左右に割った行のおわり -->
+  </div>
+
+<!-- rest.tpl 終わり -->
+</script>
+
+
+<!--
+  -- GETメソッドのテストページ rest.query
+  -- url: '/rest/query',
+  -- templateUrl: 'rest.query.tpl',
+  -- controller: 'restQueryController',
+  -- controllerAs: 'ctrl'
+  -->
+<script type="text/ng-template" id="rest.query.tpl">
+  <div>
+    <p>query()メソッドはデータ一覧を取得します。</p>
+    <md-button class="md-raised md-primary" ng-click="ctrl.query()">
+      query
+    </md-button>
+  </div>
+
+  <div>
+    <md-content>
+      <md-list flex>
+        <md-list-item class="md-3-line" ng-repeat="user in ctrl.users" ng-click="null">
+          <div class="md-list-item-text" layout="column">
+            <h3>{{ user.name }}</h3>
+            <h4>{{ user.message }}</h4>
+          </div>
+          <md-divider></md-divider>
+        </md-list-item>
+      </md-list>
+    </md-content>
+  </div>
+
+</script>
+
+
+<!--
+  -- GETメソッドのテストページ rest.get
+  -- url: '/rest/get',
+  -- templateUrl: 'rest.get.tpl',
+  -- controller: 'restGetController',
+  -- controllerAs: 'ctrl'
+  -->
+<script type="text/ng-template" id="rest.get.tpl">
+  <h1>GET</h1>
+
+</script>
+
+<script type="text/ng-template" id="rest.save.tpl">
+  <h1>Save</h1>
+
+</script>
+
+<script type="text/ng-template" id="rest.delete.tpl">
+  <h1>Delete</h1>
+
+</script>
+
+<script type="text/ng-template" id="rest.update.tpl">
+  <h1>Update</h1>
+
+</script>
+
+</html>
