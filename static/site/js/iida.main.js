@@ -149,18 +149,15 @@
     ctrl.logoTitle = 'Bottle REST Practice';
 
     // ツールバーに表示するリンク
-    ctrl.links = [
-      {
-        title: 'リンク1',
-        label: 'link 1',
-        url: '#'
-      },
-      {
-        title: 'リンク2',
-        label: 'link 2',
-        url: '#'
-      }
-    ];
+    ctrl.links = [{
+      title: 'リンク1',
+      label: 'link 1',
+      url: '#'
+    }, {
+      title: 'リンク2',
+      label: 'link 2',
+      url: '#'
+    }];
 
     // サイドナビの識別子
     // HTMLで指定するmd-component-idと一致させる必要あり
@@ -235,6 +232,24 @@
     svc.users = [];
   }]);
 
+  // データを画面表示に結びつけるためのコントローラ
+  // 'dataController'
+  angular.module(moduleName).controller('dataController', ['$scope', 'dataService', function($scope, dataService) {
+    var ctrl = this;
+
+    // コントローラ側でも同じ名前で配列を持ち、サービスのそれを$watchして同期する
+    ctrl.users = dataService.users;
+
+    $scope.$watchCollection(
+      function() {
+        return dataService.users;
+      },
+      function(value) {
+        ctrl.users = dataService.users;
+      }
+    );
+  }]);
+
   // REST APIを叩く$resourceファクトリ
   angular.module(moduleName).factory('userResource', ['$resource', '$location', function($resource, $location) {
     // 標準で定義済みのアクション query(), get(), save(), delete()
@@ -279,45 +294,42 @@
     var ctrl = this;
 
     // データサービスが初期化時にquery()するなら、その完了状態を確認した方がいい。
-    // $stateをインジェクトして$watchする必要あり。
+    // $scopeをインジェクトして$watchする必要あり。
 
     // データを取得済みかどうか
     // 初期状態ではfalseにして、usersデータのダウンロードに成功したらtrueに返るのが正しい動作。
     ctrl.isDataFetched = true;
 
     // サイドバーに表示するメニューと、飛ばす先のui-routerステート
-    ctrl.menus = [
-      {
-        title: 'query()',
-        description: 'データを一覧で取得します',
-        state: 'rest.query'
-      },
-      {
-        title: 'get()',
-        description: '特定のデータを取得します',
-        state: 'rest.get'
-      },
-      {
-        title: 'save()',
-        description: '新規にデータを追加します',
-        state: 'rest.save'
-      },
-      {
-        title: 'delete()',
-        description: '既存のデータを削除します',
-        state: 'rest.delete'
-      },
-      {
-        title: 'update()',
-        description: '既存のデータを書き換えます',
-        state: 'rest.update'
-      }
-    ];
+    ctrl.menus = [{
+      title: 'query',
+      description: 'データを一覧で取得します',
+      state: 'rest.query'
+    }, {
+      title: 'get',
+      description: '特定のデータを取得します',
+      state: 'rest.get'
+    }, {
+      title: 'save',
+      description: '新規にデータを追加します',
+      state: 'rest.save'
+    }, {
+      title: 'delete',
+      description: '既存のデータを削除します',
+      state: 'rest.delete'
+    }, {
+      title: 'update',
+      description: '既存のデータを書き換えます',
+      state: 'rest.update'
+    }];
   }]);
 
   // コントローラ 'restQueryController'
   angular.module(moduleName).controller('restQueryController', ['dataService', 'userResource', function(dataService, userResource) {
     var ctrl = this;
+
+    // サーバからのレスポンスデータ
+    ctrl.resultData = null;
 
     // query()
     // HTTP GET
@@ -329,6 +341,7 @@
       // 実行完了時の処理を指定する
       promise.then(function(data) {
         console.log(data);
+        ctrl.resultData = data;
         if ('users' in data) {
           // コントローラとサービスが持つ値を差し替える
           ctrl.users = data.users;
@@ -344,6 +357,9 @@
   angular.module(moduleName).controller('restGetController', ['dataService', 'userResource', function(dataService, userResource) {
     var ctrl = this;
 
+    // サーバからのレスポンスデータ
+    ctrl.resultData = null;
+
     // 特定の名前を指定する
     // ビューの<input>と紐付ける
     ctrl.getParam = {
@@ -354,20 +370,18 @@
     // HTTP GET
     // 単一のデータを取得
     ctrl.get = function() {
-      // REST APIのサーバに渡すパラメータ
-      var param = {
-        name: ctrl.getParam.name
-      };
+      // get()を発行して得られるプロミスを取得
+      var promise = userResource.get(ctrl.getParam).$promise;
 
-      userResource
-        .get(param)
-        .$promise
-        .then(function(user) {
-          ctrl.user = user;
-        })
-        .catch(function(data, status) {
-          console.log('error');
-        });
+      promise.then(function(data) {
+        console.log(data);
+        ctrl.resultData = data;
+      }).catch(function(data, status) {
+        console.log('error');
+        ctrl.resultData = data;
+      }).finally(function() {
+        // ctrl.getParam.name = '';
+      });
     };
   }]);
 
@@ -375,34 +389,34 @@
   angular.module(moduleName).controller('restSaveController', ['dataService', 'userResource', function(dataService, userResource) {
     var ctrl = this;
 
+    // サーバからのレスポンスデータ
+    ctrl.resultData = null;
+
     // ビューの<input>と紐付けた新規ユーザ名
-    ctrl.saveParams = {
-      newUserName: '',
-      message: '保存できるかな？'
+    ctrl.saveParam = {
+      name: '',
+      message: 'saveした'
     };
 
     // save()
     // HTTP POST
     // 新規データを登録
     ctrl.save = function() {
-      var param = {
-        name: ctrl.saveParams.newUserName,
-        message: '新規ユーザ'
-      };
+      // save()を発行して得られるプロミスを取得
+      var promise = userResource.save(ctrl.saveParam).$promise;
 
-      userResource
-        .save(param)
-        .$promise
-        .then(function(data) {
-          console.log(data);
-          ctrl.query();
-        })
-        .catch(function(obj, status) {
-          console.log(obj);
-        })
-        .finally(function() {
-          ctrl.newUserName = '';
-        });
+      promise.then(function(data) {
+        console.log(data);
+        ctrl.resultData = data;
+        if ('users' in data) {
+          dataService.users = data.users;
+        }
+      }).catch(function(obj, status) {
+        console.log(obj);
+        ctrl.resultData = obj.data;
+      }).finally(function() {
+        ctrl.saveParam.name = '';
+      });
     };
   }]);
 
@@ -410,28 +424,33 @@
   angular.module(moduleName).controller('restDeleteController', ['dataService', 'userResource', function(dataService, userResource) {
     var ctrl = this;
 
+    // サーバからのレスポンスデータ
+    ctrl.resultData = null;
+
     // ビューの<input>と紐付けた削除するユーザ名
-    ctrl.deleteParams = {
-      deleteUserName: ''
+    ctrl.deleteParam = {
+      name: ''
     };
 
     // delete()
     // HTTP DELETE
     // データを削除
     ctrl.delete = function() {
-      var param = {
-        name: ctrl.deleteParams.deleteUserName
-      };
+      // delete()を発行して得られるプロミスを取得
+      var promise = userResource.delete(ctrl.deleteParam).$promise;
 
-      userResource
-        .delete(param)
-        .$promise
-        .then(function(data) {
-          console.log(data);
-        })
-        .catch(function(data, status) {
-          console.log(data);
-        });
+      promise.then(function(data) {
+        console.log(data);
+        ctrl.resultData = data;
+        if ('users' in data) {
+          dataService.users = data.users;
+        }
+      }).catch(function(obj, status) {
+        console.log(obj);
+        ctrl.resultData = obj.data;
+      }).finally(function() {
+        ctrl.deleteParam.name = '';
+      });
     };
   }]);
 
@@ -439,10 +458,13 @@
   angular.module(moduleName).controller('restUpdateController', ['dataService', 'userResource', function(dataService, userResource) {
     var ctrl = this;
 
+    // サーバからのレスポンスデータ
+    ctrl.resultData = null;
+
     // ビューの<input>と紐付けた既存ユーザ名、変更名
-    ctrl.updateParams = {
-      oldUserName: '',
-      newUserName: '',
+    ctrl.updateParam = {
+      name: '',
+      newName: '',
       message: '変更できるかな？'
     };
 
@@ -451,20 +473,21 @@
     // データを更新
     // GETメソッド以外のアクションを実行するときはprefixに「$」をつける
     ctrl.update = function() {
-      var param = {
-        name: ctrl.updateParams.oldUserName,
-        newName: ctrl.updateParams.newUserName
-      };
+      // update()を発行して得られるプロミスを取得
+      var promise = userResource.update(ctrl.updateParam).$promise;
 
-      userResource
-        .update(param)
-        .$promise
-        .then(function(data) {
-          console.log(data);
-        })
-        .catch(function(data, status) {
-          console.log(data);
-        });
+      promise.then(function(data) {
+        console.log(data);
+        ctrl.resultData = data;
+        if ('users' in data) {
+          dataService.users = data.users;
+        }
+      }).catch(function(data, status) {
+        console.log(data);
+      }).finally(function() {
+        ctrl.updateParam.name = '';
+        ctrl.updateParam.newName = '';
+      });
     };
   }]);
 })();

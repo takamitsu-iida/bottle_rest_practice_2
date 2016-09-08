@@ -192,6 +192,7 @@ def save_handler(newname):
     try:
       with db_lock:
         db.insert(data)
+        users = db.all()
     except Exception:
       raise ValueError
   #
@@ -215,6 +216,7 @@ def save_handler(newname):
   result_dict["status"] = "SUCCESS"
   result_dict["message"] = u"追加したオブジェクトをdataキーに格納して返却します"
   result_dict["data"] = data
+  result_dict["users"] = users
   r.body = jsonpickle.encode(result_dict, unpicklable=False)
   return r
 
@@ -229,7 +231,7 @@ def query_handler():
   # 戻り値となる辞書型データ
   result_dict = {}
   result_dict["status"] = "SUCCESS"  # or ERROR
-  result_dict["message"] = u"usersキーに配列を入れて一覧を返却します"
+  result_dict["message"] = u"usersキーに一覧データを入れて返却します"
   result_dict["users"] = db.all()
 
   r = http_response(status=200)
@@ -244,9 +246,17 @@ def get_handler(name):
   u"""指定された名前のオブジェクトを返却します."""
   # 戻り値となる辞書型データ
   result_dict = {}
-  result_dict["status"] = "SUCCESS"  # or ERROR
-  result_dict["message"] = u"userキーに一致するオブジェクトを格納して返却します"
-  result_dict["user"] = db.get(User.name == name)
+
+  # データベースから指定された名前のデータを取り出す
+  user = db.get(User.name == name)
+  if user:
+    result_dict["status"] = "SUCCESS"
+    result_dict["message"] = u"userキーに一致するオブジェクトを格納して返却します"
+    result_dict["user"] = user
+  else:
+    result_dict["status"] = "ERROR"
+    result_dict["message"] = u"指定されたユーザ名は存在しません"
+    result_dict["user"] = None
 
   r = http_response(status=200)
   r.body = jsonpickle.encode(result_dict, unpicklable=False)
