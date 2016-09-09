@@ -237,31 +237,35 @@
       return svc.users;
     };
 
+    // ユーザ一覧の配列から、指定された名前を持つオブジェクトを返却する関数
     svc.getUserByName = function(name) {
-      angular.forEach(svc.users, function(value, index) {
-        if ('name' in value && name === value.name) {
-          return value;
+      var i;
+      for (i = 0; i < svc.users.length; i++) {
+        var user = svc.users[i];
+        if ('name in user' && name === user.name) {
+          return user;
         }
-      });
+      }
       return null;
     };
   }]);
 
-  // データを画面表示に結びつけるためのコントローラ
+  // ユーザ一覧の配列データを画面表示に結びつけるためのコントローラ
   // 'dataController'
   angular.module(moduleName).controller('dataController', ['dataService', function(dataService) {
     var ctrl = this;
 
+    // dataServiceをミックスインして、getUsers()を呼び出せるようにする
     angular.extend(ctrl, dataService);
   }]);
 
   // REST APIを叩く$resourceファクトリ
   angular.module(moduleName).factory('userResource', ['$resource', '$location', function($resource, $location) {
-    // 標準で定義済みのアクション query(), get(), save(), delete()
-    // 個別定義のアクション update()
+    // 標準で定義済みのアクションは４種類 query(), get(), save(), delete()
+    // 個別定義のアクション update() を作成する
     return $resource(
       // 第一引数はURL
-      // 'http://localhost:8000/names/:name',
+      // 'http://localhost:8000/rest/users/:name',
       // :nameはプレースホルダなので、/rest/users/iidaのようなURLに変換される
       $location.protocol() + '://' + $location.host() + ':' + $location.port() + '/rest/users/:name', {
         // 第二引数はデフォルトパラメータ
@@ -487,6 +491,7 @@
       newDescription: '' // 新しい備考
     };
 
+    // <md-select>で選択されたら、newNameとnewDescriptionをその情報に置き換える
     ctrl.selectChanged = function() {
       var user = dataService.getUserByName(ctrl.updateParam.name);
       if (user) {
@@ -498,7 +503,6 @@
     // update()
     // HTTP PUT
     // データを更新
-    // GETメソッド以外のアクションを実行するときはprefixに「$」をつける
     ctrl.update = function() {
       // update()を発行して得られるプロミスを取得
       var promise = userResource.update(ctrl.updateParam).$promise;

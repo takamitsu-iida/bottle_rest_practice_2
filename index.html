@@ -77,15 +77,14 @@
   <!-- 縦並びの上から１個目は常時表示するナビゲーション用のツールバー -->
   <md-toolbar>
     <div class="md-toolbar-tools">
-
-      <!-- サイドナビを表示するボタン。画面サイズが小さいときだけボタンを出す -->
+      <!-- サイドナビを表示するボタン。画面サイズが小さいときだけ、このボタンを出す -->
       <span>
         <md-button aria-label="open sidenav" class="md-icon-button md-accent md-raised" ng-click="tc.openSidenav()" ng-show="tc.enableShowSidenav()">
           <md-icon md-font-icon="fa-bars" class="fa"></md-icon>
         </md-button>
       </span>
 
-      <!-- ロゴ -->
+      <!-- ロゴを表示する -->
       <h1><a href="#">{{::tc.logoTitle}}</a></h1>
 
       <!-- 右寄せするためのspan -->
@@ -126,14 +125,14 @@
   -- controllerAs: 'indexCtrl'
   -->
 <script type="text/ng-template" id="index.tpl">
-  <md-content id="index" md-component-id="index" flex layout="row" layout-margin layout-align="center start">
+  <md-content md-component-id="index" flex layout="row" layout-margin layout-align="center start">
     <md-card flex="66" layout-padding>
 
       <md-card-content>
         <h1>{{ indexCtrl.title }}</h1>
         <p>{{ indexCtrl.description }}</p>
         <md-list-item class="md-3-line">
-          <div class="md-list-item-text" layout="column">
+          <div class="md-list-item-text" layout="column" layout-align="start center">
             <h3>{{ indexCtrl.author }}</h3>
             <h4>{{ indexCtrl.date }}</h4>
             <p>{{ indexCtrl.mail }}</p>
@@ -142,7 +141,7 @@
       </md-card-content>
 
       <md-card-actions layout="row" layout-align="center center">
-        <md-button aria-label="bottle rest" class="md-raised md-primary" ui-sref="rest">REST動作確認</md-button>
+        <md-button aria-label="bottle rest" class="md-raised md-primary" ui-sref="rest">GO</md-button>
       </md-card-actions>
 
     </md-card>
@@ -193,35 +192,30 @@
     </md-sidenav>
     <!-- サイドナビ・おわり -->
 
-
     <!-- メインコンテンツ -->
     <!-- layout="row"として、1行を左右に割る -->
     <div id="rightPanel" layout="row" flex layout-padding>
 
       <!-- 左側 -->
       <div flex layout="column">
-
         <!-- URLごとに内容を差し替える -->
         <div flex ui-view></div>
-
-      <!-- 左側・おわり -->
       </div>
 
       <!-- 右側 -->
-      <md-content id="main-right" md-component-id="main-right" class="md-whiteframe-3dp" flex-sm="35" flex-gt-sm="30" flex-gt-md="25" layout-align="end start">
+      <md-content md-component-id="main-right" class="md-whiteframe-3dp" flex-sm="35" flex-gt-sm="30" flex-gt-md="25" layout-align="end start">
         <!-- サービスが保持しているデータ一覧を常時表示する -->
         <h4>users配列</h4>
         <md-list ng-controller="dataController as dataCtrl">
           <md-list-item class="md-2-line" ng-repeat="user in dataCtrl.getUsers()" ng-click="null">
             <div class="md-list-item-text" layout="column">
-              <h3>{{ user.name }}</h3>
-              <h4>{{ user.description }}</h4>
+              <h3>{{:: user.name }}</h3>
+              <h4 ng-if="user.description">{{:: user.description }}</h4>
             </div>
             <md-divider></md-divider>
           </md-list-item>
         </md-list>
       </md-content>
-      <!-- 右側・おわり -->
 
     </div>
     <!-- メインコンテンツ・おわり -->
