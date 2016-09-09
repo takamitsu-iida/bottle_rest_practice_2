@@ -280,26 +280,34 @@ def update_handler(oldname):
     except Exception:
       raise ValueError
 
-    # newNameキーの値を取り出す
+    # JSONデータに含まれる値を取り出しておく
+    name = data.get("name", "")
+    newName = data.get("newName", "")
+    newDescription = data.get("newDescription", "")
+
+    # 変更対象になっているoldnameが存在するか、確認する
+    # oldnameとnameは同じなのだが、偽装された場合を考えてoldnameを使う
+    if db.get(User.name == oldname) is None:
+      raise KeyError(404)
+
+    # 新しく指定された名前が規則に則っているか確認する
     try:
-      newname = data.get("newName", "")
-      if not name_pattern.match(newname):
+      if not name_pattern.match(newName):
         raise ValueError
     except (TypeError, KeyError):
       raise ValueError
 
-    # oldnameが存在するか、確認する
-    if db.get(User.name == oldname) is None:
-      raise KeyError(404)
-
-    # newnameが存在するか、確認する
-    if db.get(User.name == newname):
+    # 新しい名前が存在するか、確認する
+    if db.get(User.name == newName):
       raise KeyError(409)
 
     # データベースをアップデートする
     try:
       with db_lock:
-        db.update({'name': newname}, User.name == oldname)
+        db.update({"description": newDescription}, User.name == oldname)
+        db.update({"name": newName}, User.name == oldname)
+        user = db.get(User.name == newName)
+        users = db.all()
     except Exception:
       raise ValueError
 
@@ -321,8 +329,9 @@ def update_handler(oldname):
   # 200を返す
   r = http_response(status=200)
   result_dict["status"] = "SUCCESS"
-  result_dict["message"] = u"userキーに更新したオブジェクトを返却します"
-  result_dict["user"] = db.get(User.name == newname)
+  result_dict["message"] = u"userキーに更新後のオブジェクトを入れて返却します"
+  result_dict["user"] = user
+  result_dict["users"] = users
   r.body = jsonpickle.encode(result_dict, unpicklable=False)
   return r
 
@@ -338,21 +347,23 @@ def delete_handler(name):
 
   try:
     # nameが存在するか、確認します
-    if db.get(User.name == name) is None:
+    user = db.get(User.name == name)
+    if user is None:
       raise KeyError
 
     # データベースから削除します
     try:
       with db_lock:
         db.remove(User.name == name)
+        users = db.all()
     except Exception:
       raise ValueError
 
   except ValueError:
     r = http_response(status=400)
     result_dict["status"] = "ERROR"
-    result_dict["message"] = u"データベースから削除ができないデータです"
-    result_dict["data"] = name
+    result_dict["message"] = u"データベースから削除できないデータです"
+    result_dict["name"] = name
     r.body = jsonpickle.encode(result_dict, unpicklable=False)
     return r
   except KeyError:
@@ -364,8 +375,9 @@ def delete_handler(name):
     return r
 
   r = http_response(status=200)
-  result_dict["message"] = u"削除したnameを返却します"
-  result_dict["name"] = name
+  result_dict["message"] = u"userキーに削除したオブジェクトを入れて返却します"
+  result_dict["user"] = user
+  result_dict["users"] = users
   r.body = jsonpickle.encode(result_dict, unpicklable=False)
   return r
 

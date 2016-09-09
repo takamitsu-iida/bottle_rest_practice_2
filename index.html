@@ -48,7 +48,7 @@
   <script src="./static/angular-material-1.1.1/angular-material.min.js"></script>
   <link href="./static/angular-material-1.1.1/angular-material.min.css" rel="stylesheet">
 
-  <!-- Angular materialはRobotoフォントを前提にしている -->
+  <!-- Angular materialはRobotoフォントを前提にしているが、使わない -->
   <!-- <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900,300italic,400italic,500italic,700italic,900italic"> -->
 
   <!-- Angular UI Router -->
@@ -74,20 +74,33 @@
   -->
 <body layout="column" layout-fill ng-cloak ng-controller="topController as tc" style="overflow: hidden;">
 
-  <!-- 縦並びの上から１個目はナビゲーション用のツールバー -->
+  <!-- 縦並びの上から１個目は常時表示するナビゲーション用のツールバー -->
   <md-toolbar>
     <div class="md-toolbar-tools">
+
+      <!-- サイドナビを表示するボタン。画面サイズが小さいときだけボタンを出す -->
+      <span>
+        <md-button aria-label="open sidenav" class="md-icon-button md-accent md-raised" ng-click="tc.openSidenav()" ng-show="tc.enableShowSidenav()">
+          <md-icon md-font-icon="fa-bars" class="fa"></md-icon>
+        </md-button>
+      </span>
+
       <!-- ロゴ -->
       <h1><a href="#">{{::tc.logoTitle}}</a></h1>
-      <span flex><!-- flex指定により以下が右寄せされる --></span>
-      <!-- リンクアイコン(仮置き) -->
+
+      <!-- 右寄せするためのspan -->
+      <span flex></span>
+
+      <!-- リンク(仮置き) -->
       <md-button ng-repeat="link in tc.links" aria-label="{{::link.label}}">
         {{::link.title}}
       </md-button>
+
       <!-- 設定用アイコン(仮置き) -->
       <md-button aria-label="setting" class="md-icon-button">
         <md-icon md-font-icon="fa-gear" class="fa fa-2x"></md-icon>
       </md-button>
+
     </div>
   </md-toolbar>
 
@@ -95,6 +108,7 @@
   <div flex ui-view></div>
 
 </body>
+
 
 <!--
   -- ******************
@@ -186,15 +200,6 @@
 
       <!-- 左側 -->
       <div flex layout="column">
-        <div>
-          <!-- サイドナビを表示するボタン。画面サイズが小さいときだけこのボタンを出す -->
-          <span>
-            <md-button aria-label="open sidenav" class="md-fab md-mini" ng-click="tc.openSidenav()" ng-show="tc.enableShowSidenav()">
-              <!-- <md-icon md-svg-icon="menu"></md-icon> -->
-              <md-icon md-font-icon="fa-bars" class="fa"></md-icon>
-            </md-button>
-          </span>
-        </div>
 
         <!-- URLごとに内容を差し替える -->
         <div flex ui-view></div>
@@ -207,10 +212,10 @@
         <!-- サービスが保持しているデータ一覧を常時表示する -->
         <h4>users配列</h4>
         <md-list ng-controller="dataController as dataCtrl">
-          <md-list-item class="md-2-line" ng-repeat="user in dataCtrl.users" ng-click="null">
+          <md-list-item class="md-2-line" ng-repeat="user in dataCtrl.getUsers()" ng-click="null">
             <div class="md-list-item-text" layout="column">
               <h3>{{ user.name }}</h3>
-              <h4>{{ user.message }}</h4>
+              <h4>{{ user.description }}</h4>
             </div>
             <md-divider></md-divider>
           </md-list-item>
@@ -238,17 +243,16 @@
 <script type="text/ng-template" id="rest.query.tpl">
   <div>
     <h1>Query</h1>
-    <p>query()はデータ一覧を取得します。</p>
 
-    <p>
+    <div>
       <md-button class="md-raised md-primary" ng-click="ctrl.query()">
         query
       </md-button>
-    </p>
+    </div>
 
-    <p>
+    <div>
       <pre ng-if="ctrl.resultData">{{ctrl.resultData | json}}</pre>
-    </p>
+    </div>
 
   </div>
 </script>
@@ -265,21 +269,27 @@
   <div>
     <h1>Get</h1>
 
-    <form name="getParamForm" novalidate ng-submit="$event.preventDefault()">
-      <md-input-container>
-        <label>getする名前</label>
-        <input name="get" ng-model="ctrl.getParam.name" ng-model-options="{debounce:100}" autocomplete="off" required/>
-        <md-tooltip md-direction="right">情報を取得するユーザの名前を入力してください</md-tooltip>
-      </md-input-container>
+    <form name="getParamForm" novalidate ng-submit="ctrl.get();$event.preventDefault();">
+
+      <div layout-xs="column" layout-gt-xs="row" layout-padding>
+        <md-input-container>
+          <label>getする名前</label>
+          <input name="get" ng-model="ctrl.getParam.name" ng-model-options="{debounce:100}" autocomplete="off" required/>
+          <md-tooltip md-direction="right">情報を取得するユーザの名前を入力してください</md-tooltip>
+        </md-input-container>
+      </div>
+
+      <div>
+        <md-button type="submit" class="md-raised md-primary" ng-disabled="getParamForm.$invalid">
+          get
+        </md-button>
+      </div>
+
+      <div>
+        <pre ng-if="ctrl.resultData">{{ctrl.resultData | json}}</pre>
+      </div>
+
     </form>
-
-    <p>
-      <md-button class="md-raised md-primary" ng-click="ctrl.get()" ng-disabled="getParamForm.$invalid">
-        get
-      </md-button>
-    </p>
-
-    <pre ng-if="ctrl.resultData">{{ctrl.resultData | json}}</pre>
 
   </div>
 </script>
@@ -296,21 +306,32 @@
   <div>
     <h1>Save</h1>
 
-    <form name="saveParamForm" novalidate ng-submit="$event.preventDefault()">
-      <md-input-container>
-        <label>新規登録する名前</label>
-        <input name="save" ng-model="ctrl.saveParam.name" ng-model-options="{debounce:100}" autocomplete="off" required/>
-        <md-tooltip md-direction="right">新規登録ユーザの名前を入力してください</md-tooltip>
-      </md-input-container>
+    <form name="saveParamForm" novalidate ng-submit="ctrl.save(saveParamForm);$event.preventDefault();">
+
+      <div layout-xs="column" layout-gt-xs="row" layout-padding>
+        <md-input-container class="md-block">
+          <label>新規登録する名前</label>
+          <input name="name" id="name" ng-model="ctrl.saveParam.name" ng-model-options="{debounce:100}" autocomplete="off" required/>
+          <md-tooltip md-direction="right">新規登録ユーザの名前を入力してください</md-tooltip>
+        </md-input-container>
+        <md-input-container class="md-block">
+          <label>備考</label>
+          <input name="description" ng-model="ctrl.saveParam.description" ng-model-options="{debounce:100}" autocomplete="off"/>
+          <md-tooltip md-direction="right">備考</md-tooltip>
+        </md-input-container>
+      </div>
+
+      <div>
+        <md-button type="submit" class="md-raised md-primary" ng-disabled="saveParamForm.$invalid">
+          save
+        </md-button>
+      </div>
+
+      <div>
+        <pre ng-if="ctrl.resultData">{{ctrl.resultData | json}}</pre>
+      </div>
+
     </form>
-
-    <p>
-      <md-button class="md-raised md-primary" ng-click="ctrl.save()" ng-disabled="saveParamForm.$invalid">
-        save
-      </md-button>
-    </p>
-
-    <pre ng-if="ctrl.resultData">{{ctrl.resultData | json}}</pre>
 
   </div>
 </script>
@@ -327,21 +348,27 @@
   <div>
     <h1>Delete</h1>
 
-    <form name="deleteParamForm" novalidate ng-submit="$event.preventDefault()">
-      <md-input-container>
-        <label>削除する名前</label>
-        <input name="delete" ng-model="ctrl.deleteParam.name" ng-model-options="{debounce:100}" autocomplete="off" required/>
-        <md-tooltip md-direction="right">削除するユーザの名前を入力してください</md-tooltip>
-      </md-input-container>
+    <form name="deleteParamForm" novalidate ng-submit="ctrl.delete();$event.preventDefault();">
+
+      <div layout-xs="column" layout-gt-xs="row" layout-padding>
+        <md-input-container>
+          <label>削除する名前</label>
+          <input name="delete" ng-model="ctrl.deleteParam.name" ng-model-options="{debounce:100}" autocomplete="off" required/>
+          <md-tooltip md-direction="right">削除するユーザの名前を入力してください</md-tooltip>
+        </md-input-container>
+      </div>
+
+      <div>
+        <md-button type="submit" class="md-raised md-primary" ng-disabled="deleteParamForm.$invalid">
+          delete
+        </md-button>
+      </div>
+
+      <div>
+        <pre ng-if="ctrl.resultData">{{ctrl.resultData | json}}</pre>
+      </div>
+
     </form>
-
-    <p>
-      <md-button class="md-raised md-primary" ng-click="ctrl.delete()" ng-disabled="deleteParamForm.$invalid">
-        delete
-      </md-button>
-    </p>
-
-    <pre ng-if="ctrl.resultData">{{ctrl.resultData | json}}</pre>
 
   </div>
 </script>
@@ -358,11 +385,45 @@
   <div>
     <h1>Update</h1>
 
+    <form name="updateParamForm" novalidate ng-submit="ctrl.update();$event.preventDefault();">
 
-    <pre ng-if="ctrl.resultData">{{ctrl.resultData | json}}</pre>
+      <div layout-xs="column" layout-gt-xs="row" layout-padding>
+        <md-input-container class="md-block">
+          <label>変更対象の名前</label>
+          <md-select name="name" ng-model="ctrl.updateParam.name" ng-change="ctrl.selectChanged()">
+            <md-optgroup label="名前">
+              <md-option ng-repeat="user in ctrl.getUsers()" ng-value="user.name">{{::user.name}}</md-option>
+            </md-optgroup>
+          </md-select>
+          <md-tooltip md-direction="right">変更するユーザの名前を入力してください</md-tooltip>
+        </md-input-container>
+
+        <md-input-container class="md-block">
+          <label>新しい名前</label>
+          <input name="newName" ng-model="ctrl.updateParam.newName" ng-model-options="{debounce:100}" autocomplete="off" required/>
+          <md-tooltip md-direction="right">変更後の名前を入力してください</md-tooltip>
+        </md-input-container>
+
+        <md-input-container class="md-block">
+          <label>備考</label>
+          <input name="save" ng-model="ctrl.updateParam.newDescription" ng-model-options="{debounce:100}" autocomplete="off"/>
+          <md-tooltip md-direction="right">備考</md-tooltip>
+        </md-input-container>
+      </div>
+
+      <div>
+        <md-button type="submit" class="md-raised md-primary" ng-disabled="updateParamForm.$invalid">
+          update
+        </md-button>
+      </div>
+
+      <div>
+        <pre ng-if="ctrl.resultData">{{ctrl.resultData | json}}</pre>
+      </div>
+
+    </form>
 
   </div>
 </script>
-
 
 </html>

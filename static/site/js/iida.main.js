@@ -229,25 +229,30 @@
     var svc = this;
 
     // サービスとして提供するオブジェクト
+    // ユーザ一覧の配列
     svc.users = [];
+
+    // ユーザ一覧の配列を返却する関数
+    svc.getUsers = function() {
+      return svc.users;
+    };
+
+    svc.getUserByName = function(name) {
+      angular.forEach(svc.users, function(value, index) {
+        if ('name' in value && name === value.name) {
+          return value;
+        }
+      });
+      return null;
+    };
   }]);
 
   // データを画面表示に結びつけるためのコントローラ
   // 'dataController'
-  angular.module(moduleName).controller('dataController', ['$scope', 'dataService', function($scope, dataService) {
+  angular.module(moduleName).controller('dataController', ['dataService', function(dataService) {
     var ctrl = this;
 
-    // コントローラ側でも同じ名前で配列を持ち、サービスのそれを$watchして同期する
-    ctrl.users = dataService.users;
-
-    $scope.$watchCollection(
-      function() {
-        return dataService.users;
-      },
-      function(value) {
-        ctrl.users = dataService.users;
-      }
-    );
+    angular.extend(ctrl, dataService);
   }]);
 
   // REST APIを叩く$resourceファクトリ
@@ -294,7 +299,6 @@
     var ctrl = this;
 
     // データサービスが初期化時にquery()するなら、その完了状態を確認した方がいい。
-    // $scopeをインジェクトして$watchする必要あり。
 
     // データを取得済みかどうか
     // 初期状態ではfalseにして、usersデータのダウンロードに成功したらtrueに返るのが正しい動作。
@@ -343,12 +347,14 @@
         console.log(data);
         ctrl.resultData = data;
         if ('users' in data) {
-          // コントローラとサービスが持つ値を差し替える
-          ctrl.users = data.users;
+          // dataServiceが持つ値を差し替える
           dataService.users = data.users;
         }
-      }).catch(function(data, status) {
-        console.log(data);
+      }).catch(function(obj, status) {
+        console.log(obj);
+        if ('data' in obj) {
+          ctrl.resultData = obj.data;
+        }
       });
     };
   }]);
@@ -376,9 +382,11 @@
       promise.then(function(data) {
         console.log(data);
         ctrl.resultData = data;
-      }).catch(function(data, status) {
-        console.log('error');
-        ctrl.resultData = data;
+      }).catch(function(obj, status) {
+        console.log(obj);
+        if ('data' in obj) {
+          ctrl.resultData = obj.data;
+        }
       }).finally(function() {
         // ctrl.getParam.name = '';
       });
@@ -395,13 +403,13 @@
     // ビューの<input>と紐付けた新規ユーザ名
     ctrl.saveParam = {
       name: '',
-      message: 'saveした'
+      description: ''
     };
 
     // save()
     // HTTP POST
     // 新規データを登録
-    ctrl.save = function() {
+    ctrl.save = function(form) {
       // save()を発行して得られるプロミスを取得
       var promise = userResource.save(ctrl.saveParam).$promise;
 
@@ -413,9 +421,12 @@
         }
       }).catch(function(obj, status) {
         console.log(obj);
-        ctrl.resultData = obj.data;
+        if ('data' in obj) {
+          ctrl.resultData = obj.data;
+        }
       }).finally(function() {
         ctrl.saveParam.name = '';
+        ctrl.saveParam.description = '';
       });
     };
   }]);
@@ -423,6 +434,9 @@
   // コントローラ 'restDeleteController'
   angular.module(moduleName).controller('restDeleteController', ['dataService', 'userResource', function(dataService, userResource) {
     var ctrl = this;
+
+    // getUsers()を使うために、dataServiceをミックスインする
+    angular.extend(ctrl, dataService);
 
     // サーバからのレスポンスデータ
     ctrl.resultData = null;
@@ -447,7 +461,9 @@
         }
       }).catch(function(obj, status) {
         console.log(obj);
-        ctrl.resultData = obj.data;
+        if ('data' in obj) {
+          ctrl.resultData = obj.data;
+        }
       }).finally(function() {
         ctrl.deleteParam.name = '';
       });
@@ -458,14 +474,25 @@
   angular.module(moduleName).controller('restUpdateController', ['dataService', 'userResource', function(dataService, userResource) {
     var ctrl = this;
 
+    // getUsers()を使うために、dataServiceをミックスインする
+    angular.extend(ctrl, dataService);
+
     // サーバからのレスポンスデータ
     ctrl.resultData = null;
 
-    // ビューの<input>と紐付けた既存ユーザ名、変更名
+    // ビューの<input>と紐付けた名前と備考
     ctrl.updateParam = {
-      name: '',
-      newName: '',
-      message: '変更できるかな？'
+      name: '',       // 既存名
+      newName: '',    // 変更後の名前
+      newDescription: '' // 新しい備考
+    };
+
+    ctrl.selectChanged = function() {
+      var user = dataService.getUserByName(ctrl.updateParam.name);
+      if (user) {
+        ctrl.updateParam.newName = user.name;
+        ctrl.updateParam.newDescription = user.description;
+      }
     };
 
     // update()
@@ -482,11 +509,15 @@
         if ('users' in data) {
           dataService.users = data.users;
         }
-      }).catch(function(data, status) {
-        console.log(data);
+      }).catch(function(obj, status) {
+        console.log(obj);
+        if ('data' in obj) {
+          ctrl.resultData = obj.data;
+        }
       }).finally(function() {
         ctrl.updateParam.name = '';
         ctrl.updateParam.newName = '';
+        ctrl.updateParam.newDescription = '';
       });
     };
   }]);
