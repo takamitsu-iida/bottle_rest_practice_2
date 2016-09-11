@@ -57,6 +57,10 @@
   <!-- angular-utils-pagination -->
   <script src="./static/angular-utils-pagination/dirPagination.js"></script>
 
+  <!-- angular-loading-bar -->
+  <script src="./static/angular-loading-bar/build/loading-bar.min.js"></script>
+  <link href="./static/angular-loading-bar/build/loading-bar.min.css" rel="stylesheet">
+
   <!-- サイトのCSS -->
   <link href="./static/site/css/site.css" rel="stylesheet">
 
@@ -79,7 +83,7 @@
     <div class="md-toolbar-tools">
       <!-- サイドナビを表示するボタン。画面サイズが小さいときだけ、このボタンを出す -->
       <span>
-        <md-button aria-label="open sidenav" class="md-icon-button md-accent md-raised" ng-click="tc.openSidenav()" ng-show="tc.enableShowSidenav()">
+        <md-button aria-label="open sidenav" class="md-icon-button md-raised" ng-click="tc.openSidenav()" ng-show="tc.enableShowSidenav()">
           <md-icon md-font-icon="fa-bars" class="fa"></md-icon>
         </md-button>
       </span>
@@ -88,6 +92,7 @@
       <h1><a href="#">{{::tc.logoTitle}}</a></h1>
 
       <!-- 右寄せするためのspan -->
+      <!-- angular-loading-bar -->
       <span flex></span>
 
       <!-- リンク(仮置き) -->
@@ -104,7 +109,7 @@
   </md-toolbar>
 
   <!-- 縦並びの上から２個目はui-routerのコンテナにして、URLごとに内容を差し替える -->
-  <div flex ui-view></div>
+  <div flex ui-view id="loading-bar-container"></div>
 
 </body>
 
@@ -140,8 +145,8 @@
         </md-list-item>
       </md-card-content>
 
-      <md-card-actions layout="row" layout-align="center center">
-        <md-button aria-label="bottle rest" class="md-raised md-primary" ui-sref="rest">GO</md-button>
+      <md-card-actions layout="column" layout-align="start">
+        <md-button aria-label="bottle rest" ui-sref="rest">練習開始</md-button>
       </md-card-actions>
 
     </md-card>

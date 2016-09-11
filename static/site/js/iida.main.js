@@ -12,7 +12,8 @@
     'ngMessages',
     'ngMaterial',
     'ui.router',
-    'angularUtils.directives.dirPagination'
+    'angularUtils.directives.dirPagination',
+    'angular-loading-bar'
   ]);
 
   // Angular Materialの動作設定
@@ -35,6 +36,14 @@
       .icon("setting", "./static/site/svg/ic_settings_white_24px.svg", 24);
     */
     // HTMLではこのように指定する <md-icon md-svg-icon="setting"></md-icon>
+  }]);
+
+  // angular-loading-barの動作設定
+  // コンテナのidはloading-bar-containerとする
+  angular.module(moduleName).config(['cfpLoadingBarProvider', function(cfpLoadingBarProvider) {
+    // cfpLoadingBarProvider.parentSelector = '#loading-bar-container';
+    cfpLoadingBarProvider.includeSpinner = false;
+    cfpLoadingBarProvider.includeBar = true;
   }]);
 
   // $log設定

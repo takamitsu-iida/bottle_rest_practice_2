@@ -9,7 +9,7 @@
 
   <!-- デスクリプション -->
   <meta name="description" content="Error page">
-  <meta name="keywords" content="404">
+  <meta name="keywords" content="404 Error">
   <meta name="author" content="Takamitsu IIDA">
 
   <!-- viewportの設定 -->
@@ -38,6 +38,9 @@
 </head>
 
 <body>
+
+  <!-- このページもAngularJSにしたいところだけど、テンプレートエンジンが使う記号が被ってて使えない -->
+  <!-- BootstrapのCSSを利用して見栄えを調整する -->
 
   <!-- Bootstrapコンテナ -->
   <div class="container-fluid">

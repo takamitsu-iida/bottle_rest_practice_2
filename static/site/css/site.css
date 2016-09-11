@@ -191,6 +191,13 @@ md-bottom-sheet {
   transform: translateX(100%);
 }
 
+/*
+ * angular-loading-bar
+ */
+#loading-bar .bar {
+  height: 15px;
+}
+
 
 /*
  * トップページ
