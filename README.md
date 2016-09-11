@@ -30,20 +30,20 @@ IEの場合にはlocalhostを信頼済みサイトに入れておかないと開
 
 #### サーバサイド
 
-- bottle 0.12.9
+- [x] bottle 0.12.9
 - [ ] gevent 1.1.0 (未使用)
-- gevent-websocket 0.9.5 (未使用)
-- tinydb 3.2.1
-- jsonpickle 0.9.3
-- requests 2.8.1 (未使用)
+- [ ] gevent-websocket 0.9.5 (未使用)
+- [x] tinydb 3.2.1
+- [x] jsonpickle 0.9.3
+- [ ] requests 2.8.1 (未使用)
 
 #### クライアントサイド
 
-- angular 1.5.8
-- angular material 1.1.1
-- angular-utils-pagination 0.11.1
-- angular ui-router 0.2.18
-- angular-loading-bar　0.9.0
-- font-awesome 4.6.3
-- bootstrap 3.3.6 (エラーページの表示のみ)
+- [x] angular 1.5.8
+- [x] angular material 1.1.1
+- [ ] angular-utils-pagination 0.11.1
+- [x] angular ui-router 0.2.18
+- [x] angular-loading-bar　0.9.0
+- [x] font-awesome 4.6.3
+- [x] bootstrap 3.3.6 (エラーページの表示のみ)
 
