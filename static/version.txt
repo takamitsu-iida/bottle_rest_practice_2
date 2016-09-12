@@ -1,7 +1,0 @@
-﻿angular 1.5.8
-angular material 1.1.1
-angular-utils-pagination 0.11.1
-angular ui-router 0.2.18
-angular-loading-bar　0.9.0
-font-awesome 4.6.3
-bootstrap 3.3.6
