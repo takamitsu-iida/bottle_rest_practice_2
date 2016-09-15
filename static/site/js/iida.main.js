@@ -39,8 +39,8 @@
   }]);
 
   // angular-loading-barの動作設定
-  // コンテナのidはloading-bar-containerとする
   angular.module(moduleName).config(['cfpLoadingBarProvider', function(cfpLoadingBarProvider) {
+    // コンテナのidをloading-bar-containerとする
     // cfpLoadingBarProvider.parentSelector = '#loading-bar-container';
     cfpLoadingBarProvider.includeSpinner = false;
     cfpLoadingBarProvider.includeBar = true;
@@ -69,25 +69,76 @@
   }]);
 
   // サービス 'settingParamService'
-  // 各コントローラはこのサービスをインジェクションして、angular.extend()でミックスインして利用する
+  // 各コントローラはこのサービスをインジェクションして、settingParamを利用する
   angular.module(moduleName).service('settingParamService', [function() {
     var svc = this;
 
-    // 設定条件をまとめたオブジェクト
+    // 設定パラメータをまとめたオブジェクト
     svc.settingParam = {
       // ng-ifでこれをバインドすれば、デバッグ目的で入れている要素の表示・非表示が切り替わる
-      debug: false,
+      debug: true,
+
       // コンフィグを表示するかどうか
-      showConf: true
+      showConf: false
+    };
+
+    // 現在のsettingParamを返却する関数
+    svc.getSettingParam = function() {
+      return svc.settingParam;
     };
   }]);
 
-  // コントローラ 'settingController'
-  angular.module(moduleName).controller('settingController', ['settingParamService', function(settingParamService) {
+  // コントローラ 'settingDialogController'
+  // ダイアログとして表示するので、$mdDialogを注入する
+  angular.module(moduleName).controller('settingDialogController', ['settingParamService', '$mdDialog', function(settingParamService, $mdDialog) {
     var ctrl = this;
+    var svc = settingParamService;
 
     ctrl.title = '動作設定';
-    angular.extend(ctrl, settingParamService);
+
+    // ダイアログを消す
+    ctrl.hide = function() {
+      $mdDialog.hide();
+    };
+
+    // ダイアログのキャンセルボタン
+    ctrl.cancel = function() {
+      $mdDialog.cancel();
+    };
+
+    // ダイアログからの戻り値
+    ctrl.answer = function(answer) {
+      $mdDialog.hide(answer);
+    };
+
+    // ダイアログを開く
+    ctrl.showSettingDialog = function(ev) {
+      // ダイアログを開くときに、サービスが持っている設定パラメータのコピーをコントローラに取り込む
+      ctrl.settingParam = {};
+      angular.copy(svc.settingParam, ctrl.settingParam);
+
+      $mdDialog.show({
+        controller: function() {
+          return ctrl;
+        },
+        controllerAs: 'sc',
+        templateUrl: 'setting.tpl',
+        parent: angular.element(document.body),
+        targetEvent: ev,
+        clickOutsideToClose: true,
+        fullscreen: false
+      })
+      .then(function(answer) {
+        // answerは 'ok' もしくは 'cancel' が入っている
+        if (answer === 'ok') {
+          // OKボタンを押したときのみ、コントローラが保有する設定情報をサービス側に同期する
+          svc.settingParam = ctrl.settingParam;
+        }
+      }, function() {
+        // 外側をクリックした場合はここに来る。
+        // console.log('cancelled');
+      });
+    };
   }]);
 
   // UI Router
@@ -140,19 +191,16 @@
         templateUrl: 'rest.update.tpl',
         controller: 'restUpdateController',
         controllerAs: 'ctrl'
-      })
-      .state('setting', {
-        url: '/setting',
-        templateUrl: 'setting.tpl',
-        controller: 'settingController',
-        controllerAs: 'settingCtrl'
       });
   }]);
 
   // <body>にバインドする最上位のコントローラ
   // 主にレイアウトを担当
-  angular.module(moduleName).controller('topController', ['$scope', '$mdMedia', '$mdSidenav', '$mdComponentRegistry', '$window', function($scope, $mdMedia, $mdSidenav, $mdComponentRegistry, $window) {
+  angular.module(moduleName).controller('topController', ['settingParamService', '$mdMedia', '$mdSidenav', '$mdComponentRegistry', '$window', function(settingParamService, $mdMedia, $mdSidenav, $mdComponentRegistry, $window) {
     var ctrl = this;
+
+    // settingParamServiceをミックスインする
+    angular.extend(ctrl, settingParamService);
 
     // ツールバーの左に表示するロゴ
     ctrl.logoTitle = 'Bottle REST Practice';
@@ -311,10 +359,11 @@
   angular.module(moduleName).controller('restController', ['dataService', 'userResource', function(dataService, userResource) {
     var ctrl = this;
 
+    // 未対応
     // データサービスが初期化時にquery()するなら、その完了状態を確認した方がいい。
-
+    //
     // データを取得済みかどうか
-    // 初期状態ではfalseにして、usersデータのダウンロードに成功したらtrueに返るのが正しい動作。
+    // 初期状態ではfalseにして、usersデータのダウンロードに成功したらtrueに変える
     ctrl.isDataFetched = true;
 
     // サイドバーに表示するメニューと、飛ばす先のui-routerステート

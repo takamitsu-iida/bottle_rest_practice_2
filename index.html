@@ -101,9 +101,11 @@
       </md-button>
 
       <!-- 設定用アイコン(仮置き) -->
-      <md-button aria-label="setting" class="md-icon-button">
-        <md-icon md-font-icon="fa-gear" class="fa fa-2x"></md-icon>
-      </md-button>
+      <span ng-controller="settingDialogController as sc">
+        <md-button aria-label="setting" class="md-icon-button", ng-click="sc.showSettingDialog()">
+          <md-icon md-font-icon="fa-gear" class="fa fa-2x"></md-icon>
+        </md-button>
+      </span>
 
     </div>
   </md-toolbar>
@@ -151,6 +153,47 @@
 
     </md-card>
   </md-content>
+</script>
+
+
+// controllerAs: 'sc',
+// templateUrl: 'setting.tpl',
+// parent: angular.element(document.body),
+<script type="text/ng-template" id="setting.tpl">
+
+  <md-dialog aria-label="Setting" flex="40">
+    <!-- ダイアログの上段にツールバーを使ってタイトルを付ける -->
+    <md-toolbar>
+      <div class="md-toolbar-tools">
+        <h2>Setting</h2>
+        <span flex></span>
+        <md-button aria-label="close dialog" class="md-icon-button" ng-click="sc.cancel()">
+          <md-icon md-font-icon="fa-times" class="fa fa-2x"></md-icon>
+        </md-button>
+      </div>
+    </md-toolbar>
+
+    <!-- ダイアログのコンテンツ -->
+    <md-dialog-content>
+      <!-- md-dialog-contentクラスを使うと、いい具合にパディングされる -->
+      <div class="md-dialog-content">
+        <md-switch ng-model="sc.settingParam.debug" aria-label="Switch debug">
+          debug: {{ sc.settingParam.debug }}
+        </md-switch>
+        <md-switch ng-model="sc.settingParam.showConfig" aria-label="Switch show config">
+          showConf: {{ sc.settingParam.showConf }}
+        </md-switch>
+      </div>
+    </md-dialog-content>
+
+    <!-- ダイアログの最下部、フッタ部分にボタンを配置する -->
+    <md-dialog-actions layout="row">
+      <span flex></span>
+      <md-button ng-click="sc.answer('ok')" md-autofocus>OK</md-button>
+      <md-button ng-click="sc.answer('cancel')">Cancel</md-button>
+    </md-dialog-actions>
+  </md-dialog>
+
 </script>
 
 
@@ -250,7 +293,7 @@
     </div>
 
     <div>
-      <pre ng-if="ctrl.resultData">{{ctrl.resultData | json}}</pre>
+      <pre ng-if="tc.getSettingParam().debug && ctrl.resultData">{{ctrl.resultData | json}}</pre>
     </div>
 
   </div>

@@ -474,7 +474,7 @@ def main():
     BOTTLE_PORT = inifile.getint("BOTTLE", "PORT")
   except Exception:
     BOTTLE_HOSTNAME = 'localhost'
-    BOTTLE_PORT = 5000
+    BOTTLE_PORT = 8000
 
   if __server__ == "gevent":
     print("geventを使ってサーバを起動します")
