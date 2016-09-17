@@ -60,9 +60,22 @@
       restrict: 'E',
       replace: true,
       template: '<button type="button" class="btn btn-primary">戻る</button>',
-      link: function(scope, elem, attrs) {
-        elem.bind('click', function() {
+      link: function(scope, element, attrs) {
+        element.bind('click', function() {
           $window.history.back();
+        });
+      }
+    };
+  }]);
+
+  // 自動でフォーカスをあてる
+  // <input autofocus></input>
+  angular.module(moduleName).directive('autofocus', ['$timeout', function($timeout) {
+    return {
+      restrict: 'A',
+      link: function(scope, element, attrs) {
+        $timeout(function() {
+          element.focus();
         });
       }
     };

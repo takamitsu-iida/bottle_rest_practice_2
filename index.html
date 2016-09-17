@@ -165,8 +165,7 @@
     <!-- ダイアログの上段にツールバーを使ってタイトルを付ける -->
     <md-toolbar>
       <div class="md-toolbar-tools">
-        <h2>Setting</h2>
-        <span flex></span>
+        <h2>Setting</h2> <span flex></span>
         <md-button aria-label="close dialog" class="md-icon-button" ng-click="sc.cancel()">
           <md-icon md-font-icon="fa-times" class="fa fa-2x"></md-icon>
         </md-button>
@@ -180,7 +179,7 @@
         <md-switch ng-model="sc.settingParam.debug" aria-label="Switch debug">
           debug: {{ sc.settingParam.debug }}
         </md-switch>
-        <md-switch ng-model="sc.settingParam.showConfig" aria-label="Switch show config">
+        <md-switch ng-model="sc.settingParam.showConf" aria-label="Switch show config">
           showConf: {{ sc.settingParam.showConf }}
         </md-switch>
       </div>
@@ -316,7 +315,7 @@
       <div layout-xs="column" layout-gt-xs="row" layout-padding>
         <md-input-container>
           <label>getする名前</label>
-          <input name="get" ng-model="ctrl.getParam.name" ng-model-options="{debounce:100}" autocomplete="off" required/>
+          <input name="get" ng-model="ctrl.getParam.name" ng-model-options="{debounce:100}" autocomplete="off" autofocus required/>
           <md-tooltip md-direction="right">情報を取得するユーザの名前を入力してください</md-tooltip>
         </md-input-container>
       </div>
@@ -353,7 +352,7 @@
       <div layout-xs="column" layout-gt-xs="row" layout-padding>
         <md-input-container class="md-block">
           <label>新規登録する名前</label>
-          <input name="name" id="name" ng-model="ctrl.saveParam.name" ng-model-options="{debounce:100}" autocomplete="off" required/>
+          <input name="name" id="name" ng-model="ctrl.saveParam.name" ng-model-options="{debounce:100}" autocomplete="off" autofocus required/>
           <md-tooltip md-direction="right">新規登録ユーザの名前を入力してください</md-tooltip>
         </md-input-container>
         <md-input-container class="md-block">
@@ -395,7 +394,7 @@
       <div layout-xs="column" layout-gt-xs="row" layout-padding>
         <md-input-container>
           <label>削除する名前</label>
-          <input name="delete" ng-model="ctrl.deleteParam.name" ng-model-options="{debounce:100}" autocomplete="off" required/>
+          <input name="delete" ng-model="ctrl.deleteParam.name" ng-model-options="{debounce:100}" autocomplete="off" autofocus required/>
           <md-tooltip md-direction="right">削除するユーザの名前を入力してください</md-tooltip>
         </md-input-container>
       </div>
@@ -437,7 +436,7 @@
               <md-option ng-repeat="user in ctrl.getUsers()" ng-value="user.name">{{::user.name}}</md-option>
             </md-optgroup>
           </md-select>
-          <md-tooltip md-direction="right">変更するユーザの名前を入力してください</md-tooltip>
+          <md-tooltip md-direction="right">変更するユーザの名前を選択してください</md-tooltip>
         </md-input-container>
 
         <md-input-container class="md-block">

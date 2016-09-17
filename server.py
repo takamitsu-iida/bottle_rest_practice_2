@@ -211,8 +211,8 @@ def save_handler(newname):
     r.body = jsonpickle.encode(result_dict, unpicklable=False)
     return r
 
-  # 200を返す
-  r = http_response(status=200)
+  # 201を返す
+  r = http_response(status=201)
   result_dict["status"] = "SUCCESS"
   result_dict["message"] = u"追加したオブジェクトをdataキーに格納して返却します"
   result_dict["data"] = data
@@ -234,6 +234,10 @@ def query_handler():
   result_dict["message"] = u"usersキーに一覧データを入れて返却します"
   result_dict["users"] = db.all()
 
+  # 304 Not Modified を返せるようにするには、
+  # このリクエストをしてきたユーザがどんな情報を持っているのか、確認しないといけない
+  # いまはそれを確認する手段がないので200を返す
+
   r = http_response(status=200)
   r.body = jsonpickle.encode(result_dict, unpicklable=False)
   return r
@@ -247,18 +251,22 @@ def get_handler(name):
   # 戻り値となる辞書型データ
   result_dict = {}
 
-  # データベースから指定された名前のデータを取り出す
-  user = db.get(User.name == name)
-  if user:
-    result_dict["status"] = "SUCCESS"
-    result_dict["message"] = u"userキーに一致するオブジェクトを格納して返却します"
-    result_dict["user"] = user
-  else:
+  try:
+    # データベースから指定された名前のデータを取り出す
+    user = db.get(User.name == name)
+    if user is None:
+      raise KeyError(404)
+  except KeyError as e:
+    r = http_response(status=e.args[0])
     result_dict["status"] = "ERROR"
     result_dict["message"] = u"指定されたユーザ名は存在しません"
-    result_dict["user"] = None
+    r.body = jsonpickle.encode(result_dict, unpicklable=False)
+    return r
 
   r = http_response(status=200)
+  result_dict["status"] = "SUCCESS"
+  result_dict["message"] = u"userキーにオブジェクトを格納して返却します"
+  result_dict["user"] = user
   r.body = jsonpickle.encode(result_dict, unpicklable=False)
   return r
 
@@ -290,14 +298,14 @@ def update_handler(oldname):
     if db.get(User.name == oldname) is None:
       raise KeyError(404)
 
-    # 新しく指定された名前が規則に則っているか確認する
+    # 新しく指定された名前が規則に則っているか確認し、ダメな場合はValueErrorを上げる
     try:
       if not name_pattern.match(newName):
         raise ValueError
     except (TypeError, KeyError):
       raise ValueError
 
-    # 新しい名前が存在するか、確認する
+    # 新しい名前が存在するか確認し、あればKeyErrorを上げる
     if db.get(User.name == newName):
       raise KeyError(409)
 
@@ -326,7 +334,7 @@ def update_handler(oldname):
     r.body = jsonpickle.encode(result_dict, unpicklable=False)
     return r
 
-  # 200を返す
+  # 本当なら204 No Contentを返すべきだが、利便性のため200 OKを返しつつコンテンツを付ける
   r = http_response(status=200)
   result_dict["status"] = "SUCCESS"
   result_dict["message"] = u"userキーに更新後のオブジェクトを入れて返却します"
@@ -374,6 +382,7 @@ def delete_handler(name):
     r.body = jsonpickle.encode(result_dict, unpicklable=False)
     return r
 
+  # 本当なら204 No Contentを返すべきだが、利便性のため200 OKを返しつつコンテンツを付ける
   r = http_response(status=200)
   result_dict["message"] = u"userキーに削除したオブジェクトを入れて返却します"
   result_dict["user"] = user
