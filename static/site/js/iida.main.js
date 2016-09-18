@@ -69,13 +69,50 @@
   }]);
 
   // 自動でフォーカスをあてる
-  // <input autofocus></input>
-  angular.module(moduleName).directive('autofocus', ['$timeout', function($timeout) {
+  // <input iida-autofocus></input>
+  angular.module(moduleName).directive('iidaAutofocus', ['$timeout', function($timeout) {
     return {
       restrict: 'A',
       link: function(scope, element, attrs) {
         $timeout(function() {
           element.focus();
+        });
+      }
+    };
+  }]);
+
+  // ここでは未使用
+  // <form iida-focus-invalid></form>
+  // バリデーションにかかった要素にフォーカスをあてる
+  angular.module(moduleName).directive('iidaFocusInvalid', function() {
+    return {
+      restrict: 'A',
+      link: function(scope, element) {
+        // 'submit'イベントを受信したときのハンドラを登録
+        element.on('submit', function() {
+          // .ng-invalidになっている要素を取り出して、フォーカスを当てる
+          var firstInvalid = element[0].querySelector('.ng-invalid');
+          if (firstInvalid) {
+            firstInvalid.focus();
+          }
+        });
+      }
+    };
+  });
+
+  // <input type="text" iida-focus-on="submit">
+  // 特定のイベントを捕捉してフォーカスをあてる
+  // イベントの発行はコントローラから $scope.$broadcast('submit') のようにする
+  // submit後に先頭にフォーカスを移すような場面で便利。
+  // md-selectとは相性が悪く、一度奪ったフォーカスを即座にまた戻されてしまうので、500ミリ秒の遅延をいれている
+  angular.module(moduleName).directive('iidaFocusOn', ['$timeout', function($timeout) {
+    return {
+      restrict: 'A',
+      link: function(scope, element, attrs) {
+        scope.$on(attrs.iidaFocusOn, function() {
+          $timeout(function() {
+            element[0].focus();
+          }, 500);
         });
       }
     };
@@ -469,7 +506,8 @@
   }]);
 
   // コントローラ 'restSaveController'
-  angular.module(moduleName).controller('restSaveController', ['dataService', 'userResource', function(dataService, userResource) {
+  // $scope.$broadcastを使いたいので、$scopeを注入する
+  angular.module(moduleName).controller('restSaveController', ['dataService', 'userResource', '$scope', function(dataService, userResource, $scope) {
     var ctrl = this;
 
     // サーバからのレスポンスデータ
@@ -502,6 +540,8 @@
       }).finally(function() {
         ctrl.saveParam.name = '';
         ctrl.saveParam.description = '';
+        // 'submit'イベントを発行する。このイベントを聞いている要素にフォーカスが移る。
+        $scope.$broadcast('submit');
       });
     };
   }]);
@@ -546,7 +586,7 @@
   }]);
 
   // コントローラ 'restUpdateController'
-  angular.module(moduleName).controller('restUpdateController', ['dataService', 'userResource', function(dataService, userResource) {
+  angular.module(moduleName).controller('restUpdateController', ['dataService', 'userResource', '$scope', function(dataService, userResource, $scope) {
     var ctrl = this;
 
     // getUsers()を使うために、dataServiceをミックスインする
@@ -557,8 +597,8 @@
 
     // ビューの<input>と紐付けた名前と備考
     ctrl.updateParam = {
-      name: '',       // 既存名
-      newName: '',    // 変更後の名前
+      name: '', // 既存名
+      newName: '', // 変更後の名前
       newDescription: '' // 新しい備考
     };
 
@@ -569,6 +609,7 @@
         ctrl.updateParam.newName = user.name;
         ctrl.updateParam.newDescription = user.description;
       }
+      $scope.$broadcast('selectClosed');
     };
 
     // update()
