@@ -86,7 +86,7 @@ from bottle import template
 
 import jsonpickle
 jsonpickle.set_preferred_backend('json')
-jsonpickle.set_encoder_options('json', sort_keys=False, indent=2)
+jsonpickle.set_encoder_options('json', sort_keys=False, indent=2, ensure_ascii=False)
 # REST APIで複雑な構造をしたオブジェクトを返却するにはjsonpickleが便利
 # jsonpickleの使い方
 # デフォルトでは余計なクラス情報が付加されるので、unpicklableはFalseに指定する
