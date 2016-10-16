@@ -48,5 +48,5 @@ IEの場合にはlocalhostを信頼済みサイトに入れておかないと開
 - [ ] angular-utils-pagination 0.11.1
 - [x] angular ui-router 0.2.18
 - [x] angular-loading-bar　0.9.0
-- [x] font-awesome 4.6.3
+- [ ] font-awesome 4.6.3
 - [x] bootstrap 3.3.6 (CSSだけ利用)
